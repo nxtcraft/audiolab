@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- coi-serviceworker: enables SharedArrayBuffer on GitHub Pages (page reloads once on first visit) -->
+<script src="https://cdn.jsdelivr.net/npm/coi-serviceworker@0.1.7/coi-serviceworker.min.js"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-XXXXXXXXXX");</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AudioKit — Free Online Audio Editor | MP3 Cutter, Converter, Ringtone Maker</title>
+<meta name="description" content="Free online audio tools: cut MP3, convert audio format, make ringtone, boost volume, merge audio files. All run in your browser — no upload, no signup, 100% private.">
+<meta name="keywords" content="mp3 cutter online free, audio converter online free, ringtone maker online, volume booster online, merge audio files online free, cut audio online, audio editor online no upload, mp3 trimmer free">
+<link rel="canonical" href="https://nxtcraft.github.io/audiokit/">
+<meta property="og:title" content="AudioKit — Free MP3 Cutter, Converter, Ringtone Maker">
+<meta property="og:description" content="5 audio tools in one place. Cut, convert, make ringtones, boost volume, merge. Free, in your browser.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"AudioKit","url":"https://nxtcraft.github.io/audiokit/","description":"Free browser-based audio tools."}</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Inter',BlinkMacSystemFont,sans-serif;background:#fffbeb;color:#451a03;min-height:100vh}
+nav{background:#fff;border-bottom:1px solid #fde68a;padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+.logo{font-size:19px;font-weight:800}.logo span{color:#d97706}
+.nav-tag{font-size:11px;background:#fef3c7;color:#d97706;padding:3px 10px;border-radius:20px;font-weight:600}
+.tabs-bar{background:#fff;border-bottom:2px solid #fde68a;padding:0 16px;display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:54px;z-index:19}
+.tabs-bar::-webkit-scrollbar{display:none}
+.tab{padding:13px 15px;font-size:13px;font-weight:600;color:#6b7280;cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:6px}
+.tab:hover{color:#d97706}
+.tab.active{color:#d97706;border-bottom-color:#d97706}
+.tool-panel{display:none;max-width:860px;margin:0 auto;padding:28px 16px 60px}
+.tool-panel.active{display:block}
+h2{font-size:22px;font-weight:800;margin-bottom:5px}
+.subtitle{font-size:13px;color:#6b7280;margin-bottom:22px}
+.upload-zone{border:2.5px dashed #fcd34d;border-radius:16px;padding:44px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#fff;margin-bottom:20px}
+.upload-zone:hover,.upload-zone.drag{border-color:#d97706;background:#fffbeb}
+.up-icon{font-size:40px;margin-bottom:10px}
+.up-title{font-size:15px;font-weight:700;margin-bottom:3px}
+.up-sub{font-size:12px;color:#9ca3af}
+.upload-btn{display:inline-block;margin-top:12px;background:#d97706;color:#fff;padding:10px 22px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.upload-btn:hover{background:#b45309}
+.card{background:#fff;border-radius:14px;border:1.5px solid #fde68a;padding:18px 20px;margin-bottom:14px}
+.card-title{font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.btn-primary{background:#d97706;color:#fff;padding:11px 24px;border-radius:10px;font-size:13px;font-weight:700;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+.btn-primary:hover{background:#b45309}
+.btn-sec{background:#fffbeb;color:#d97706;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;border:none;cursor:pointer}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.tip{background:#fef3c7;border-left:3px solid #f59e0b;border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;margin-top:14px;line-height:1.6}
+.error{background:#fef2f2;border-left:3px solid #ef4444;border-radius:8px;padding:10px 14px;font-size:12px;color:#991b1b;margin-bottom:12px;display:none}
+.error.show{display:block}
+.status-bar{background:#fff;border:1.5px solid #fde68a;border-radius:10px;padding:14px 16px;margin-bottom:14px;display:none}
+.status-bar.show{display:flex;align-items:flex-start;gap:12px}
+.spinner{width:20px;height:20px;border:2.5px solid #fde68a;border-top-color:#d97706;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;margin-top:2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status-text{font-size:13px;font-weight:600;color:#92400e;margin-bottom:4px}
+.status-sub{font-size:11px;color:#9ca3af}
+.prog-bar{height:4px;background:#fef3c7;border-radius:4px;margin-top:6px;overflow:hidden;width:100%}
+.prog-fill{height:100%;background:linear-gradient(90deg,#d97706,#f59e0b);border-radius:4px;transition:width .4s;width:0%}
+.audio-player{width:100%;border-radius:12px;margin-bottom:14px;display:block;accent-color:#d97706}
+.time-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.time-row label{font-size:13px;font-weight:600;min-width:68px}
+.time-input{width:110px;padding:8px 10px;border:1.5px solid #fde68a;border-radius:8px;font-size:14px;font-weight:700;text-align:center;color:#451a03;font-family:monospace}
+.time-input:focus{outline:none;border-color:#d97706}
+.set-btn{background:#fffbeb;color:#d97706;border:1.5px solid #fcd34d;border-radius:7px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.set-btn:hover{background:#fef3c7}
+.fmt-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.fmt-btn{padding:10px 20px;border-radius:10px;border:1.5px solid #fde68a;background:#fff;font-size:13px;font-weight:700;cursor:pointer;color:#6b7280;transition:all .15s}
+.fmt-btn:hover{border-color:#d97706;color:#d97706}
+.fmt-btn.active{border-color:#d97706;background:#fffbeb;color:#d97706}
+.quality-opts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.q-opt{padding:10px 18px;border-radius:10px;border:1.5px solid #fde68a;background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:#6b7280;transition:all .15s;text-align:center}
+.q-opt:hover{border-color:#d97706;color:#d97706}
+.q-opt.active{border-color:#d97706;background:#fffbeb;color:#d97706}
+.q-sub{font-size:10px;color:#9ca3af;font-weight:400;margin-top:2px}
+.file-info-bar{background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:10px 14px;font-size:12px;color:#451a03;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.file-info-bar span{color:#9ca3af}
+.stats-row{display:grid;grid-template-columns:1fr 28px 1fr;gap:10px;align-items:center;margin-bottom:14px}
+.stat-box{background:#fffbeb;border-radius:10px;padding:12px;text-align:center}
+.stat-label{font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;margin-bottom:3px}
+.stat-val{font-size:18px;font-weight:800}.stat-val.g{color:#d97706}
+.range-input{width:100%;accent-color:#d97706;margin:8px 0}
+.merge-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.merge-item{background:#fff;border:1.5px solid #fde68a;border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;font-size:13px}
+.merge-item .mi-name{font-weight:600;color:#451a03;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.merge-item .mi-sz{color:#9ca3af;font-size:11px;margin:0 10px;flex-shrink:0}
+.merge-item .mi-rm{background:none;border:none;cursor:pointer;color:#ef4444;font-size:16px;flex-shrink:0}
+footer{text-align:center;padding:22px;font-size:12px;color:#d97706;border-top:1px solid #fde68a}
+footer a{color:#d97706;text-decoration:none}
+.ffload-overlay{position:fixed;inset:0;background:rgba(255,251,235,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;gap:16px;display:none}
+.ffload-overlay.show{display:flex}
+.ffload-spinner{width:48px;height:48px;border:4px solid #fde68a;border-top-color:#d97706;border-radius:50%;animation:spin .8s linear infinite}
+.ffload-title{font-size:17px;font-weight:800;color:#451a03}
+.ffload-sub{font-size:13px;color:#6b7280;text-align:center;max-width:300px;line-height:1.6}
+.ffload-prog{width:240px;height:5px;background:#fef3c7;border-radius:5px;overflow:hidden}
+.ffload-prog-fill{height:100%;background:#d97706;border-radius:5px;transition:width .4s;width:0%}
+</style>
+</head>
+<body>
+
+<div class="ffload-overlay" id="ff-overlay">
+  <div class="ffload-spinner"></div>
+  <div class="ffload-title">Loading AudioKit Engine</div>
+  <div class="ffload-sub">Downloading FFmpeg (~30 MB) — happens once, then cached in your browser.</div>
+  <div class="ffload-prog"><div class="ffload-prog-fill" id="ff-fill"></div></div>
+</div>
+
+<nav>
+  <div class="logo">Audio<span>Kit</span></div>
+  <div class="nav-tag">Free · No Upload · No Signup</div>
+</nav>
+
+<div class="tabs-bar">
+  <div class="tab active" onclick="switchTab('cut',this)">✂️ MP3 Cutter</div>
+  <div class="tab" onclick="switchTab('convert',this)">🔄 Convert</div>
+  <div class="tab" onclick="switchTab('ringtone',this)">📱 Ringtone</div>
+  <div class="tab" onclick="switchTab('volume',this)">🔊 Volume</div>
+  <div class="tab" onclick="switchTab('merge',this)">➕ Merge</div>
+</div>
+
+<!-- MP3 CUTTER -->
+<div id="panel-cut" class="tool-panel active">
+  <h2>MP3 / Audio Cutter</h2>
+  <p class="subtitle">Trim any audio file to keep only the part you want. Works with MP3, WAV, OGG, AAC, M4A.</p>
+  <div class="upload-zone" id="cut-drop">
+    <div class="up-icon">✂️</div>
+    <div class="up-title">Drop your audio file here</div>
+    <div class="up-sub">MP3, WAV, OGG, AAC, M4A, FLAC</div>
+    <button class="upload-btn" onclick="document.getElementById('cut-file').click()">Choose Audio</button>
+  </div>
+  <input type="file" id="cut-file" accept="audio/*" style="display:none">
+  <div class="error" id="cut-error"></div>
+  <div id="cut-editor" style="display:none">
+    <audio class="audio-player" id="cut-audio" controls></audio>
+    <div class="card">
+      <div class="card-title">Set Start &amp; End Time</div>
+      <div class="time-row">
+        <label>Start time</label>
+        <input class="time-input" id="cut-start" value="00:00:00">
+        <button class="set-btn" onclick="cutSetTime('start')">⏯ Set to current</button>
+      </div>
+      <div class="time-row">
+        <label>End time</label>
+        <input class="time-input" id="cut-end" value="00:00:00">
+        <button class="set-btn" onclick="cutSetTime('end')">⏯ Set to current</button>
+      </div>
+      <div style="font-size:11px;color:#9ca3af;margin-top:4px">Play the audio, pause at the point you want, then click "Set to current"</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Output Format</div>
+      <div class="fmt-btns" id="cut-fmt-btns">
+        <button class="fmt-btn active" data-fmt="mp3" onclick="cutFmtSelect(this)">MP3<div style="font-size:10px;color:#9ca3af;font-weight:400">Most compatible</div></button>
+        <button class="fmt-btn" data-fmt="wav" onclick="cutFmtSelect(this)">WAV<div style="font-size:10px;color:#9ca3af;font-weight:400">Lossless quality</div></button>
+        <button class="fmt-btn" data-fmt="ogg" onclick="cutFmtSelect(this)">OGG<div style="font-size:10px;color:#9ca3af;font-weight:400">Smaller size</div></button>
+      </div>
+    </div>
+    <div class="status-bar" id="cut-status">
+      <div class="spinner"></div>
+      <div style="flex:1">
+        <div class="status-text" id="cut-status-text">Cutting…</div>
+        <div class="status-sub">Trimming your audio file.</div>
+        <div class="prog-bar"><div class="prog-fill" id="cut-prog"></div></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" onclick="cutRun()">✂️ Cut &amp; Download</button>
+      <button class="btn-sec" onclick="cutReset()">New file</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONVERT -->
+<div id="panel-convert" class="tool-panel">
+  <h2>Audio Format Converter</h2>
+  <p class="subtitle">Convert between MP3, WAV, OGG, and AAC. Choose your output quality.</p>
+  <div class="upload-zone" id="cvt-drop">
+    <div class="up-icon">🔄</div>
+    <div class="up-title">Drop your audio file here</div>
+    <div class="up-sub">MP3, WAV, OGG, AAC, M4A, FLAC</div>
+    <button class="upload-btn" onclick="document.getElementById('cvt-file').click()">Choose Audio</button>
+  </div>
+  <input type="file" id="cvt-file" accept="audio/*" style="display:none">
+  <div class="error" id="cvt-error"></div>
+  <div id="cvt-controls" style="display:none">
+    <div class="file-info-bar">
+      <span>File:</span><span id="cvt-fname">—</span><span>·</span><span id="cvt-fsize">—</span>
+    </div>
+    <div class="card">
+      <div class="card-title">Convert To</div>
+      <div class="fmt-btns">
+        <button class="fmt-btn active" data-fmt="mp3" onclick="cvtSelect(this)">MP3<div style="font-size:10px;color:#9ca3af;font-weight:400">192 kbps · Universal</div></button>
+        <button class="fmt-btn" data-fmt="wav" onclick="cvtSelect(this)">WAV<div style="font-size:10px;color:#9ca3af;font-weight:400">Lossless · Larger</div></button>
+        <button class="fmt-btn" data-fmt="ogg" onclick="cvtSelect(this)">OGG<div style="font-size:10px;color:#9ca3af;font-weight:400">Smaller · Web use</div></button>
+        <button class="fmt-btn" data-fmt="aac" onclick="cvtSelect(this)">AAC<div style="font-size:10px;color:#9ca3af;font-weight:400">iTunes / Apple</div></button>
+      </div>
+    </div>
+    <div class="status-bar" id="cvt-status">
+      <div class="spinner"></div>
+      <div style="flex:1">
+        <div class="status-text" id="cvt-status-text">Converting…</div>
+        <div class="prog-bar"><div class="prog-fill" id="cvt-prog"></div></div>
+      </div>
+    </div>
+    <div id="cvt-result" style="display:none">
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-label">Original</div><div class="stat-val" id="cvt-orig-sz">—</div></div>
+        <div style="text-align:center;font-size:18px;color:#d97706">→</div>
+        <div class="stat-box"><div class="stat-label">Converted</div><div class="stat-val g" id="cvt-new-sz">—</div></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" onclick="cvtRun()">🔄 Convert &amp; Download</button>
+      <button class="btn-sec" onclick="cvtReset()">New file</button>
+    </div>
+  </div>
+</div>
+
+<!-- RINGTONE MAKER -->
+<div id="panel-ringtone" class="tool-panel">
+  <h2>Ringtone Maker</h2>
+  <p class="subtitle">Cut any song to 30 seconds with smooth fade in/out. Perfect for phone ringtones.</p>
+  <div class="upload-zone" id="rt-drop">
+    <div class="up-icon">📱</div>
+    <div class="up-title">Drop your audio file here</div>
+    <div class="up-sub">MP3, WAV, OGG, M4A — any song</div>
+    <button class="upload-btn" onclick="document.getElementById('rt-file').click()">Choose Audio</button>
+  </div>
+  <input type="file" id="rt-file" accept="audio/*" style="display:none">
+  <div class="error" id="rt-error"></div>
+  <div id="rt-editor" style="display:none">
+    <audio class="audio-player" id="rt-audio" controls></audio>
+    <div class="card">
+      <div class="card-title">Clip Start &amp; Duration</div>
+      <div class="time-row">
+        <label>Start time</label>
+        <input class="time-input" id="rt-start" value="00:00:00">
+        <button class="set-btn" onclick="rtSetTime()">⏯ Set to current</button>
+      </div>
+      <div class="time-row">
+        <label>Duration</label>
+        <input class="time-input" id="rt-dur" value="30" style="width:80px"> sec
+        <span style="font-size:12px;color:#9ca3af">(max 40s for ringtones)</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Fade Effects</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="rt-fadein" checked style="accent-color:#d97706;width:15px;height:15px"> Fade in (1 sec)
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="rt-fadeout" checked style="accent-color:#d97706;width:15px;height:15px"> Fade out (1 sec)
+        </label>
+      </div>
+    </div>
+    <div class="status-bar" id="rt-status">
+      <div class="spinner"></div>
+      <div style="flex:1">
+        <div class="status-text" id="rt-status-text">Creating ringtone…</div>
+        <div class="prog-bar"><div class="prog-fill" id="rt-prog"></div></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" onclick="rtRun()">📱 Make Ringtone &amp; Download</button>
+      <button class="btn-sec" onclick="rtReset()">New file</button>
+    </div>
+    <div class="tip">💡 Output is MP3 at 128 kbps — compatible with Android and iPhone (set via settings app on iOS).</div>
+  </div>
+</div>
+
+<!-- VOLUME BOOSTER -->
+<div id="panel-volume" class="tool-panel">
+  <h2>Volume Booster / Adjuster</h2>
+  <p class="subtitle">Make audio louder or quieter. Adjust volume by dB — no quality loss.</p>
+  <div class="upload-zone" id="vol-drop">
+    <div class="up-icon">🔊</div>
+    <div class="up-title">Drop your audio file here</div>
+    <div class="up-sub">MP3, WAV, OGG, AAC, M4A</div>
+    <button class="upload-btn" onclick="document.getElementById('vol-file').click()">Choose Audio</button>
+  </div>
+  <input type="file" id="vol-file" accept="audio/*" style="display:none">
+  <div class="error" id="vol-error"></div>
+  <div id="vol-controls" style="display:none">
+    <div class="file-info-bar">
+      <span>File:</span><span id="vol-fname">—</span>
+    </div>
+    <div class="card">
+      <div class="card-title">Volume Adjustment</div>
+      <div style="text-align:center;font-size:36px;font-weight:900;color:#d97706;margin-bottom:10px" id="vol-display">+10 dB</div>
+      <input type="range" class="range-input" id="vol-slider" min="-20" max="20" value="10" step="1" oninput="volSliderUpdate(this.value)">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#9ca3af;margin-top:4px">
+        <span>-20 dB (quieter)</span><span>0 dB (no change)</span><span>+20 dB (louder)</span>
+      </div>
+      <div class="quality-opts" style="margin-top:14px">
+        <div class="q-opt" data-db="-10" onclick="volPreset(this)">-10 dB<div class="q-sub">Quieter</div></div>
+        <div class="q-opt" data-db="0" onclick="volPreset(this)">0 dB<div class="q-sub">No change</div></div>
+        <div class="q-opt active" data-db="10" onclick="volPreset(this)">+10 dB<div class="q-sub">Louder ✓</div></div>
+        <div class="q-opt" data-db="20" onclick="volPreset(this)">+20 dB<div class="q-sub">Much louder</div></div>
+      </div>
+    </div>
+    <div class="status-bar" id="vol-status">
+      <div class="spinner"></div>
+      <div style="flex:1">
+        <div class="status-text" id="vol-status-text">Adjusting volume…</div>
+        <div class="prog-bar"><div class="prog-fill" id="vol-prog"></div></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" onclick="volRun()">🔊 Apply &amp; Download</button>
+      <button class="btn-sec" onclick="volReset()">New file</button>
+    </div>
+    <div class="tip">💡 Going above +10 dB may cause clipping (distortion). For very quiet audio, try +10 dB first.</div>
+  </div>
+</div>
+
+<!-- MERGE AUDIO -->
+<div id="panel-merge" class="tool-panel">
+  <h2>Merge / Join Audio Files</h2>
+  <p class="subtitle">Combine multiple audio files into one. Add up to 10 files — joined in order.</p>
+  <div class="upload-zone" id="mg-drop">
+    <div class="up-icon">➕</div>
+    <div class="up-title">Drop audio files here</div>
+    <div class="up-sub">MP3, WAV, OGG, AAC — up to 10 files</div>
+    <button class="upload-btn" onclick="document.getElementById('mg-file').click()">Add Audio Files</button>
+  </div>
+  <input type="file" id="mg-file" accept="audio/*" multiple style="display:none">
+  <div class="error" id="mg-error"></div>
+  <div id="mg-controls" style="display:none">
+    <div class="merge-list" id="mg-list"></div>
+    <button class="btn-sec" style="margin-bottom:14px" onclick="document.getElementById('mg-file').click()">+ Add more files</button>
+    <div class="card">
+      <div class="card-title">Output Format</div>
+      <div class="fmt-btns">
+        <button class="fmt-btn active" data-fmt="mp3" onclick="mgFmtSelect(this)">MP3<div style="font-size:10px;color:#9ca3af;font-weight:400">Universal</div></button>
+        <button class="fmt-btn" data-fmt="wav" onclick="mgFmtSelect(this)">WAV<div style="font-size:10px;color:#9ca3af;font-weight:400">Lossless</div></button>
+      </div>
+    </div>
+    <div class="status-bar" id="mg-status">
+      <div class="spinner"></div>
+      <div style="flex:1">
+        <div class="status-text" id="mg-status-text">Merging…</div>
+        <div class="status-sub">Joining all audio files in order.</div>
+        <div class="prog-bar"><div class="prog-fill" id="mg-prog"></div></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn-primary" onclick="mgRun()">➕ Merge &amp; Download</button>
+      <button class="btn-sec" onclick="mgReset()">Start over</button>
+    </div>
+    <div class="tip">💡 All files are joined in the order shown above. For best results, use files with the same sample rate.</div>
+  </div>
+</div>
+
+<footer><a href="https://nxtcraft.github.io/">NxtCraft Free Tools</a> · <a href="https://nxtcraft.github.io/videokit/">VideoKit</a> · Your audio never leaves your device</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+<script>
+// ── Tab switching ──────────────────────────────────────
+function switchTab(id,el){
+  document.querySelectorAll('.tool-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+  history.replaceState(null,'','#'+id);
+}
+(function(){
+  const h=location.hash.slice(1);
+  const map={'cut':0,'convert':1,'ringtone':2,'volume':3,'merge':4};
+  if(h in map){const tabs=document.querySelectorAll('.tab');switchTab(h,tabs[map[h]]);}
+})();
+
+// ── Helpers ────────────────────────────────────────────
+function fmtSz(b){if(!b)return'—';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(2)+' MB';}
+function showErr(id,msg){const e=document.getElementById(id);e.textContent=msg;e.classList.add('show');}
+function hideErr(id){document.getElementById(id).classList.remove('show');}
+function setStat(barId,textId,progId,text,pct){
+  document.getElementById(barId).classList.add('show');
+  document.getElementById(textId).textContent=text;
+  if(progId)document.getElementById(progId).style.width=pct+'%';
+}
+function hideStat(id){document.getElementById(id).classList.remove('show');}
+function makeDrop(zoneId,fileId,cb,multi){
+  const z=document.getElementById(zoneId);
+  if(!z)return;
+  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('drag');});
+  z.addEventListener('dragleave',()=>z.classList.remove('drag'));
+  z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('drag');multi?cb(e.dataTransfer.files):cb(e.dataTransfer.files[0]);});
+  document.getElementById(fileId).addEventListener('change',function(){multi?cb(this.files):cb(this.files[0]);});
+}
+function getExt(file){return(file.name.split('.').pop()||'mp3').toLowerCase();}
+function secToHMS(s){
+  s=Math.max(0,s);
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=Math.floor(s%60);
+  return [h,m,sec].map(v=>String(v).padStart(2,'0')).join(':');
+}
+function hmsToSec(str){
+  const parts=str.split(':').map(Number);
+  if(parts.length===3)return parts[0]*3600+parts[1]*60+parts[2];
+  if(parts.length===2)return parts[0]*60+parts[1];
+  return Number(str)||0;
+}
+function triggerDownload(data,filename,mime){
+  const blob=new Blob([data.buffer],{type:mime});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+
+// ── FFmpeg init ────────────────────────────────────────
+const { createFFmpeg, fetchFile } = FFmpeg;
+let ffmpeg=null, ffmpegReady=false;
+async function ensureFFmpeg() {
+  if(ffmpegReady)return;
+  document.getElementById('ff-overlay').classList.add('show');
+  document.getElementById('ff-fill').style.width='5%';
+  if(!ffmpeg){
+    ffmpeg=createFFmpeg({
+      corePath:'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+      log:false,
+      progress:({ratio})=>{if(ratio>0)document.getElementById('ff-fill').style.width=Math.round(ratio*100)+'%';}
+    });
+  }
+  try{
+    document.getElementById('ff-fill').style.width='15%';
+    await ffmpeg.load();
+    ffmpegReady=true;
+    document.getElementById('ff-fill').style.width='100%';
+    setTimeout(()=>document.getElementById('ff-overlay').classList.remove('show'),400);
+  }catch(e){
+    document.getElementById('ff-overlay').classList.remove('show');
+    throw new Error('Failed to load FFmpeg: '+e.message);
+  }
+}
+
+// ── MP3 CUTTER ────────────────────────────────────────
+let cutFile, cutFmt='mp3';
+makeDrop('cut-drop','cut-file',cutLoad);
+function cutLoad(file){
+  if(!file||!file.type.startsWith('audio/'))return showErr('cut-error','Please select an audio file.');
+  hideErr('cut-error');
+  cutFile=file;
+  const audio=document.getElementById('cut-audio');
+  audio.src=URL.createObjectURL(file);
+  audio.onloadedmetadata=()=>{document.getElementById('cut-end').value=secToHMS(audio.duration);};
+  document.getElementById('cut-drop').style.display='none';
+  document.getElementById('cut-editor').style.display='';
+}
+function cutSetTime(which){
+  const audio=document.getElementById('cut-audio');
+  document.getElementById('cut-'+which).value=secToHMS(audio.currentTime);
+}
+function cutFmtSelect(el){
+  document.querySelectorAll('#cut-fmt-btns .fmt-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  cutFmt=el.dataset.fmt;
+}
+async function cutRun(){
+  hideErr('cut-error');
+  const start=document.getElementById('cut-start').value;
+  const end=document.getElementById('cut-end').value;
+  const s=hmsToSec(start),e=hmsToSec(end);
+  if(e<=s){showErr('cut-error','End time must be after start time.');return;}
+  try{
+    await ensureFFmpeg();
+    setStat('cut-status','cut-status-text','cut-prog','Cutting audio…',20);
+    const ext=getExt(cutFile);
+    ffmpeg.FS('writeFile','input.'+ext,await fetchFile(cutFile));
+    ffmpeg.setProgress(({ratio})=>{if(ratio>0)document.getElementById('cut-prog').style.width=Math.round(20+ratio*70)+'%';});
+    const fmtArgs=cutFmt==='mp3'?['-c:a','libmp3lame','-b:a','192k']:
+                   cutFmt==='wav'?['-c:a','pcm_s16le']:
+                   ['-c:a','libvorbis','-b:a','192k'];
+    await ffmpeg.run('-i','input.'+ext,'-ss',String(s),'-to',String(e),...fmtArgs,'output.'+cutFmt);
+    const data=ffmpeg.FS('readFile','output.'+cutFmt);
+    const base=cutFile.name.replace(/\.[^.]+$/,'');
+    triggerDownload(data,`${base}-cut-${start.replace(/:/g,'')}-${end.replace(/:/g,'')}.${cutFmt}`,'audio/'+cutFmt);
+    ffmpeg.FS('unlink','input.'+ext);ffmpeg.FS('unlink','output.'+cutFmt);
+    hideStat('cut-status');
+  }catch(err){
+    hideStat('cut-status');
+    showErr('cut-error','Cut failed: '+err.message);
+  }
+}
+function cutReset(){
+  document.getElementById('cut-editor').style.display='none';
+  document.getElementById('cut-drop').style.display='';
+  document.getElementById('cut-file').value='';
+  cutFile=null; hideErr('cut-error');
+}
+
+// ── CONVERT ───────────────────────────────────────────
+let cvtFile, cvtFmt='mp3';
+makeDrop('cvt-drop','cvt-file',cvtLoad);
+function cvtLoad(file){
+  if(!file||!file.type.startsWith('audio/'))return showErr('cvt-error','Please select an audio file.');
+  hideErr('cvt-error');
+  cvtFile=file;
+  document.getElementById('cvt-fname').textContent=file.name;
+  document.getElementById('cvt-fsize').textContent=fmtSz(file.size);
+  document.getElementById('cvt-drop').style.display='none';
+  document.getElementById('cvt-controls').style.display='';
+  document.getElementById('cvt-result').style.display='none';
+}
+function cvtSelect(el){
+  document.querySelectorAll('#panel-convert .fmt-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  cvtFmt=el.dataset.fmt;
+}
+async function cvtRun(){
+  hideErr('cvt-error');
+  try{
+    await ensureFFmpeg();
+    setStat('cvt-status','cvt-status-text','cvt-prog','Loading file…',5);
+    const ext=getExt(cvtFile);
+    ffmpeg.FS('writeFile','input.'+ext,await fetchFile(cvtFile));
+    ffmpeg.setProgress(({ratio})=>{if(ratio>0)document.getElementById('cvt-prog').style.width=Math.round(10+ratio*80)+'%';});
+    setStat('cvt-status','cvt-status-text','cvt-prog',`Converting to ${cvtFmt.toUpperCase()}…`,10);
+    const fmtArgs=cvtFmt==='mp3'?['-c:a','libmp3lame','-b:a','192k']:
+                   cvtFmt==='wav'?['-c:a','pcm_s16le']:
+                   cvtFmt==='ogg'?['-c:a','libvorbis','-b:a','192k']:
+                   ['-c:a','aac','-b:a','192k'];
+    const outName='output.'+cvtFmt;
+    await ffmpeg.run('-i','input.'+ext,...fmtArgs,outName);
+    const data=ffmpeg.FS('readFile',outName);
+    document.getElementById('cvt-orig-sz').textContent=fmtSz(cvtFile.size);
+    document.getElementById('cvt-new-sz').textContent=fmtSz(data.byteLength);
+    document.getElementById('cvt-result').style.display='';
+    const base=cvtFile.name.replace(/\.[^.]+$/,'');
+    triggerDownload(data,base+'.'+cvtFmt,'audio/'+cvtFmt);
+    ffmpeg.FS('unlink','input.'+ext);ffmpeg.FS('unlink',outName);
+    hideStat('cvt-status');
+  }catch(err){
+    hideStat('cvt-status');
+    showErr('cvt-error','Conversion failed: '+err.message);
+  }
+}
+function cvtReset(){
+  document.getElementById('cvt-controls').style.display='none';
+  document.getElementById('cvt-drop').style.display='';
+  document.getElementById('cvt-file').value='';
+  cvtFile=null; hideErr('cvt-error');
+}
+
+// ── RINGTONE MAKER ────────────────────────────────────
+let rtFile;
+makeDrop('rt-drop','rt-file',rtLoad);
+function rtLoad(file){
+  if(!file||!file.type.startsWith('audio/'))return showErr('rt-error','Please select an audio file.');
+  hideErr('rt-error');
+  rtFile=file;
+  const audio=document.getElementById('rt-audio');
+  audio.src=URL.createObjectURL(file);
+  document.getElementById('rt-drop').style.display='none';
+  document.getElementById('rt-editor').style.display='';
+}
+function rtSetTime(){
+  const audio=document.getElementById('rt-audio');
+  document.getElementById('rt-start').value=secToHMS(audio.currentTime);
+}
+async function rtRun(){
+  hideErr('rt-error');
+  const start=document.getElementById('rt-start').value;
+  const dur=Math.min(40,parseInt(document.getElementById('rt-dur').value)||30);
+  const s=hmsToSec(start);
+  const fadeIn=document.getElementById('rt-fadein').checked;
+  const fadeOut=document.getElementById('rt-fadeout').checked;
+  const filters=[];
+  if(fadeIn) filters.push('afade=t=in:st=0:d=1');
+  if(fadeOut) filters.push(`afade=t=out:st=${Math.max(0,dur-1)}:d=1`);
+  try{
+    await ensureFFmpeg();
+    setStat('rt-status','rt-status-text','rt-prog','Creating ringtone…',20);
+    const ext=getExt(rtFile);
+    ffmpeg.FS('writeFile','input.'+ext,await fetchFile(rtFile));
+    ffmpeg.setProgress(({ratio})=>{if(ratio>0)document.getElementById('rt-prog').style.width=Math.round(20+ratio*70)+'%';});
+    const args=['-i','input.'+ext,'-ss',String(s),'-t',String(dur)];
+    if(filters.length) args.push('-af',filters.join(','));
+    args.push('-c:a','libmp3lame','-b:a','128k','ringtone.mp3');
+    await ffmpeg.run(...args);
+    const data=ffmpeg.FS('readFile','ringtone.mp3');
+    triggerDownload(data,rtFile.name.replace(/\.[^.]+$/,'')+'-ringtone.mp3','audio/mp3');
+    ffmpeg.FS('unlink','input.'+ext);ffmpeg.FS('unlink','ringtone.mp3');
+    hideStat('rt-status');
+  }catch(err){
+    hideStat('rt-status');
+    showErr('rt-error','Failed: '+err.message);
+  }
+}
+function rtReset(){
+  document.getElementById('rt-editor').style.display='none';
+  document.getElementById('rt-drop').style.display='';
+  document.getElementById('rt-file').value='';
+  rtFile=null; hideErr('rt-error');
+}
+
+// ── VOLUME BOOSTER ────────────────────────────────────
+let volFile, volDb=10;
+makeDrop('vol-drop','vol-file',volLoad);
+function volLoad(file){
+  if(!file||!file.type.startsWith('audio/'))return showErr('vol-error','Please select an audio file.');
+  hideErr('vol-error');
+  volFile=file;
+  document.getElementById('vol-fname').textContent=file.name;
+  document.getElementById('vol-drop').style.display='none';
+  document.getElementById('vol-controls').style.display='';
+}
+function volSliderUpdate(v){
+  volDb=parseInt(v);
+  document.getElementById('vol-display').textContent=(volDb>0?'+':'')+volDb+' dB';
+  document.querySelectorAll('.quality-opts .q-opt').forEach(b=>b.classList.remove('active'));
+}
+function volPreset(el){
+  document.querySelectorAll('.quality-opts .q-opt').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  volDb=parseInt(el.dataset.db);
+  document.getElementById('vol-slider').value=volDb;
+  document.getElementById('vol-display').textContent=(volDb>0?'+':'')+volDb+' dB';
+}
+async function volRun(){
+  hideErr('vol-error');
+  if(volDb===0){showErr('vol-error','Volume is set to 0 dB — no change would be made. Move the slider.');return;}
+  try{
+    await ensureFFmpeg();
+    setStat('vol-status','vol-status-text','vol-prog','Adjusting volume…',20);
+    const ext=getExt(volFile);
+    ffmpeg.FS('writeFile','input.'+ext,await fetchFile(volFile));
+    ffmpeg.setProgress(({ratio})=>{if(ratio>0)document.getElementById('vol-prog').style.width=Math.round(20+ratio*70)+'%';});
+    await ffmpeg.run('-i','input.'+ext,'-af',`volume=${volDb}dB`,'-c:a','libmp3lame','-b:a','192k','output.mp3');
+    const data=ffmpeg.FS('readFile','output.mp3');
+    const base=volFile.name.replace(/\.[^.]+$/,'');
+    triggerDownload(data,`${base}-volume${volDb>0?'+':''}${volDb}dB.mp3`,'audio/mp3');
+    ffmpeg.FS('unlink','input.'+ext);ffmpeg.FS('unlink','output.mp3');
+    hideStat('vol-status');
+  }catch(err){
+    hideStat('vol-status');
+    showErr('vol-error','Failed: '+err.message);
+  }
+}
+function volReset(){
+  document.getElementById('vol-controls').style.display='none';
+  document.getElementById('vol-drop').style.display='';
+  document.getElementById('vol-file').value='';
+  volFile=null; hideErr('vol-error');
+}
+
+// ── MERGE AUDIO ───────────────────────────────────────
+let mgFiles=[], mgFmt='mp3';
+makeDrop('mg-drop','mg-file',mgAddFiles,true);
+function mgAddFiles(files){
+  const arr=Array.from(files).filter(f=>f.type.startsWith('audio/'));
+  if(!arr.length)return showErr('mg-error','Please select audio files only.');
+  hideErr('mg-error');
+  if(mgFiles.length+arr.length>10){showErr('mg-error','Maximum 10 files allowed.');return;}
+  mgFiles=[...mgFiles,...arr];
+  renderMgList();
+  document.getElementById('mg-drop').style.display='none';
+  document.getElementById('mg-controls').style.display='';
+}
+function renderMgList(){
+  const list=document.getElementById('mg-list');
+  list.innerHTML='';
+  mgFiles.forEach((f,i)=>{
+    const item=document.createElement('div');
+    item.className='merge-item';
+    item.innerHTML=`<span class="mi-name">${i+1}. ${f.name}</span><span class="mi-sz">${fmtSz(f.size)}</span><button class="mi-rm" onclick="mgRemove(${i})">✕</button>`;
+    list.appendChild(item);
+  });
+}
+function mgRemove(i){
+  mgFiles.splice(i,1);
+  if(mgFiles.length===0){
+    document.getElementById('mg-controls').style.display='none';
+    document.getElementById('mg-drop').style.display='';
+  } else {
+    renderMgList();
+  }
+}
+function mgFmtSelect(el){
+  document.querySelectorAll('#panel-merge .fmt-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  mgFmt=el.dataset.fmt;
+}
+async function mgRun(){
+  hideErr('mg-error');
+  if(mgFiles.length<2){showErr('mg-error','Please add at least 2 audio files.');return;}
+  try{
+    await ensureFFmpeg();
+    setStat('mg-status','mg-status-text','mg-prog','Loading files…',5);
+    // Write all files and build concat list
+    const names=[];
+    for(let i=0;i<mgFiles.length;i++){
+      const ext=getExt(mgFiles[i]);
+      const fname=`in${i}.${ext}`;
+      ffmpeg.FS('writeFile',fname,await fetchFile(mgFiles[i]));
+      names.push(fname);
+      document.getElementById('mg-prog').style.width=Math.round(5+(i/mgFiles.length)*30)+'%';
+    }
+    // Build concat filter
+    const inputs=names.flatMap(n=>['-i',n]);
+    const filterStr=names.map((_,i)=>`[${i}:a]`).join('')+`concat=n=${names.length}:v=0:a=1[out]`;
+    setStat('mg-status','mg-status-text','mg-prog','Merging audio…',40);
+    ffmpeg.setProgress(({ratio})=>{if(ratio>0)document.getElementById('mg-prog').style.width=Math.round(40+ratio*55)+'%';});
+    const fmtArgs=mgFmt==='mp3'?['-c:a','libmp3lame','-b:a','192k']:['-c:a','pcm_s16le'];
+    await ffmpeg.run(...inputs,'-filter_complex',filterStr,'-map','[out]',...fmtArgs,'merged.'+mgFmt);
+    const data=ffmpeg.FS('readFile','merged.'+mgFmt);
+    triggerDownload(data,'merged-audio.'+mgFmt,'audio/'+mgFmt);
+    names.forEach(n=>{try{ffmpeg.FS('unlink',n);}catch(e){}});
+    ffmpeg.FS('unlink','merged.'+mgFmt);
+    hideStat('mg-status');
+  }catch(err){
+    hideStat('mg-status');
+    showErr('mg-error','Merge failed: '+err.message);
+  }
+}
+function mgReset(){
+  mgFiles=[];
+  document.getElementById('mg-controls').style.display='none';
+  document.getElementById('mg-drop').style.display='';
+  document.getElementById('mg-file').value='';
+  document.getElementById('mg-list').innerHTML='';
+  hideErr('mg-error');
+}
+
+setTimeout(()=>ensureFFmpeg().catch(()=>{}),3000);
+</script>
+</body>
+</html>
