@@ -6,6 +6,9 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-R9EW10BJGW"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag("js",new Date());gtag("config","G-R9EW10BJGW");</script>
 <meta charset="UTF-8">
+<link rel="manifest" href="/audiokit/manifest.json">
+<meta name="theme-color" content="#f59e0b">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AudioLab — Free Online Audio Editor | MP3 Cutter, Converter, Ringtone Maker</title>
 <meta name="description" content="Free online audio tools: cut MP3, convert audio format, make ringtone, boost volume, merge audio files. All run in your browser — no upload, no signup, 100% private.">
@@ -720,5 +723,6 @@ function mgReset(){
 
 setTimeout(()=>ensureFFmpeg().catch(()=>{}),3000);
 </script>
+<script>if("serviceWorker"in navigator)navigator.serviceWorker.register("/audiokit/sw.js");</script>
 </body>
 </html>
