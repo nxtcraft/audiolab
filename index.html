@@ -442,6 +442,7 @@ let cutFile, cutFmt='mp3';
 makeDrop('cut-drop','cut-file',cutLoad);
 function cutLoad(file){
   if(!file||!file.type.startsWith('audio/'))return showErr('cut-error','Please select an audio file.');
+  if(file.size>200*1024*1024)return showErr('cut-error','File too large (max 200 MB). Try a shorter clip to avoid browser memory issues.');
   hideErr('cut-error');
   cutFile=file;
   const audio=document.getElementById('cut-audio');
@@ -497,6 +498,7 @@ let cvtFile, cvtFmt='mp3';
 makeDrop('cvt-drop','cvt-file',cvtLoad);
 function cvtLoad(file){
   if(!file||!file.type.startsWith('audio/'))return showErr('cvt-error','Please select an audio file.');
+  if(file.size>200*1024*1024)return showErr('cvt-error','File too large (max 200 MB). Try a shorter clip to avoid browser memory issues.');
   hideErr('cvt-error');
   cvtFile=file;
   document.getElementById('cvt-fname').textContent=file.name;
@@ -602,6 +604,7 @@ let volFile, volDb=10;
 makeDrop('vol-drop','vol-file',volLoad);
 function volLoad(file){
   if(!file||!file.type.startsWith('audio/'))return showErr('vol-error','Please select an audio file.');
+  if(file.size>200*1024*1024)return showErr('vol-error','File too large (max 200 MB). Try a shorter clip to avoid browser memory issues.');
   hideErr('vol-error');
   volFile=file;
   document.getElementById('vol-fname').textContent=file.name;
